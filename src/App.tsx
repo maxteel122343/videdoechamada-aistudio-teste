@@ -263,6 +263,8 @@ export default function App() {
           targetLang: selectedLang.code !== 'pt-BR' ? selectedLang.code : null,
           mode: currentMode,
         }),
+      });
+
       let data: any = {};
       try {
         const resText = await response.text();

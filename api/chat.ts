@@ -1,18 +1,8 @@
-import express from 'express';
 import { GoogleGenAI } from '@google/genai';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-
-// Helper to get GoogleGenAI client safely
 function getAiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
+  if (!apiKey) return null;
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
@@ -23,10 +13,15 @@ function getAiClient(): GoogleGenAI | null {
   });
 }
 
-const chatHandler = async (req: express.Request, res: express.Response) => {
+export default async function handler(req: any, res: any) {
+  // Allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
   try {
     const {
-      message,
+      message = '',
       tasks = [],
       activeTaskId = null,
       targetLang = null,
@@ -36,7 +31,7 @@ const chatHandler = async (req: express.Request, res: express.Response) => {
 
     const ai = getAiClient();
     if (!ai) {
-      return res.json({
+      return res.status(200).json({
         replyText:
           'Olá! Estou funcionando no modo interativo offline agora. Para minha inteligência completa do Gemini, configure a chave GEMINI_API_KEY nas variáveis de ambiente da Vercel!',
         voiceStyle: mode === 'hyper_productive' ? 'urgent_focus' : 'cheerful_funny',
@@ -107,67 +102,14 @@ Você DEVE responder ESTRITAMENTE num objeto JSON com a seguinte estrutura:
       };
     }
 
-    return res.json(parsed);
+    return res.status(200).json(parsed);
   } catch (err: any) {
-    console.error('Error in /api/chat:', err);
-    return res.json({
-      replyText: `Desculpe, tive um problema ao consultar o Gemini (${err?.message || 'Erro de API'}). Verifique a chave GEMINI_API_KEY nas variáveis da Vercel!`,
+    console.error('Error in api/chat handler:', err);
+    return res.status(200).json({
+      replyText: `Desculpe, tive um problema ao consultar o Gemini (${err?.message || 'Erro de API'}). Verifique se a chave GEMINI_API_KEY está adicionada em Settings > Environment Variables na Vercel!`,
       voiceStyle: 'cheerful_funny',
       mode: 'normal',
       taskActions: [],
     });
   }
-};
-
-const translateHandler = async (req: express.Request, res: express.Response) => {
-  try {
-    const { text, targetLang = 'en-US' } = req.body || {};
-    if (!text) {
-      return res.json({ translation: '' });
-    }
-
-    const ai = getAiClient();
-    if (!ai) {
-      return res.json({ translation: `[Traduzido (${targetLang})]: ${text}` });
-    }
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Translate the following text accurately and naturally into language code "${targetLang}". Return only the translated text without commentary:\n\n${text}`,
-      config: {
-        temperature: 0.2,
-      },
-    });
-
-    return res.json({
-      translation: response.text ? response.text.trim() : text,
-    });
-  } catch (err: any) {
-    console.error('Error in /api/translate:', err);
-    return res.json({ translation: text });
-  }
-};
-
-const ttsHandler = async (req: express.Request, res: express.Response) => {
-  try {
-    const { text } = req.body || {};
-    if (!text) {
-      return res.status(400).json({ error: 'Text is required' });
-    }
-    return res.json({ fallbackToWebSpeech: true });
-  } catch (err: any) {
-    return res.json({ fallbackToWebSpeech: true });
-  }
-};
-
-// Route handlers for both /api/* and /* paths for 100% Vercel compatibility
-app.post('/api/chat', chatHandler);
-app.post('/chat', chatHandler);
-app.post('/api/translate', translateHandler);
-app.post('/translate', translateHandler);
-app.post('/api/tts', ttsHandler);
-app.post('/tts', ttsHandler);
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
-
-export default app;
+}

@@ -158,6 +158,7 @@ EXEMPLOS DE taskActions:
     return res.json(parsed);
   } catch (err: any) {
     console.error('Error in /api/chat:', err);
+    const mode = req.body?.mode || 'normal';
     return res.json({
       replyText: `Desculpe, tive um problema ao consultar o Gemini (${err?.message || 'Erro de API'}). Verifique a chave GEMINI_API_KEY nas variáveis da Vercel!`,
       voiceStyle: mode === 'hyper_productive' ? 'urgent_focus' : 'cheerful_funny',
@@ -193,6 +194,8 @@ app.post('/api/translate', async (req, res) => {
     });
   } catch (err: any) {
     console.error('Error in /api/translate:', err);
+    const targetLang = req.body?.targetLang || 'en-US';
+    const text = req.body?.text || '';
     return res.json({ translation: `[Traduzido (${targetLang})]: ${text}` });
   }
 });
