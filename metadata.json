@@ -1,0 +1,11 @@
+{
+  "name": "Parceiro Virtual - Chamada IA & Tarefas",
+  "description": "App de chamada de vídeo com IA de voz moderna, engraçada e inteligente, tradução em tempo real para múltiplos idiomas, agendamento de tarefas e alarmes com modo hiperprodutivo.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
