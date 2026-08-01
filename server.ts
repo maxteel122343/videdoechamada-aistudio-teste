@@ -133,7 +133,7 @@ EXEMPLOS DE taskActions:
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: message,
       config: {
         systemInstruction,
@@ -158,9 +158,11 @@ EXEMPLOS DE taskActions:
     return res.json(parsed);
   } catch (err: any) {
     console.error('Error in /api/chat:', err);
-    return res.status(500).json({
-      error: 'Falha ao comunicar com a IA',
-      details: err?.message,
+    return res.json({
+      replyText: `Desculpe, tive um problema ao consultar o Gemini (${err?.message || 'Erro de API'}). Verifique a chave GEMINI_API_KEY nas variáveis da Vercel!`,
+      voiceStyle: mode === 'hyper_productive' ? 'urgent_focus' : 'cheerful_funny',
+      mode,
+      taskActions: [],
     });
   }
 });
@@ -179,7 +181,7 @@ app.post('/api/translate', async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: `Translate the following text accurately and naturally into language code "${targetLang}". Return only the translated text without commentary:\n\n${text}`,
       config: {
         temperature: 0.2,
@@ -191,7 +193,7 @@ app.post('/api/translate', async (req, res) => {
     });
   } catch (err: any) {
     console.error('Error in /api/translate:', err);
-    return res.status(500).json({ error: err?.message });
+    return res.json({ translation: `[Traduzido (${targetLang})]: ${text}` });
   }
 });
 

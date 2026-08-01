@@ -263,9 +263,15 @@ export default function App() {
           targetLang: selectedLang.code !== 'pt-BR' ? selectedLang.code : null,
           mode: currentMode,
         }),
-      });
-
-      const data = await response.json();
+      let data: any = {};
+      try {
+        const resText = await response.text();
+        data = JSON.parse(resText);
+      } catch (e) {
+        data = {
+          replyText: 'Resposta do servidor não pôde ser lida como JSON. Verifique se a GEMINI_API_KEY foi configurada na Vercel.',
+        };
+      }
 
       const aiMsg: ChatMessage = {
         id: 'msg-ai-' + Date.now(),
